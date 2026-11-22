@@ -1,0 +1,224 @@
+.blob {
+  appearance: none;
+  border: 0;
+  background: none;
+  padding: 0;
+  display: block;
+  width: var(--blob-size);
+  max-width: 100%;
+  border-radius: 45%;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+button.blob {
+  cursor: pointer;
+}
+
+.blob svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.blob:focus-visible {
+  outline-offset: 4px;
+}
+
+/* Ground shadow shrinks slightly as the blob rises */
+.blob-shadow {
+  fill: var(--ink);
+  opacity: 0.12;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: blob-shadow var(--breath-dur, var(--dur-breath)) var(--ease-in-out) infinite;
+}
+
+/* Idle breathing; Energy sets the speed (--breath-dur) and size (--breath-scale, --breath-lift) */
+.blob-breathe {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: blob-breathe var(--breath-dur, var(--dur-breath)) var(--ease-in-out) infinite;
+}
+
+/* Poke reaction: squash → stretch → settle, anchored at the feet */
+.blob-squash {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+.blob-squash.is-squishing {
+  animation: blob-squash var(--dur-squash) var(--ease-out);
+}
+
+.blob-face {
+  transition: transform 180ms var(--ease-out);
+}
+
+/* Shape morph: stretch from the feet (viewBox point 100,182) */
+.blob-shape {
+  transform-box: view-box;
+  transform-origin: 100px 182px;
+  transition: transform 120ms var(--ease-out);
+}
+
+.blob-face-lift {
+  transition: transform 120ms var(--ease-out);
+}
+
+.blob-aura {
+  transition: opacity 200ms var(--ease-out);
+}
+
+/* Smooth color changes */
+.blob stop {
+  transition: stop-color 300ms var(--ease-out);
+}
+
+/* Mood: Sleepy — heavy lids */
+.blob-lid {
+  fill: none;
+  stroke: #1d1b2c;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+
+/* Mood: Mischievous — one raised brow, one squint, a sneaky sideways glance */
+.blob-brow {
+  fill: none;
+  stroke: #3a2c3a;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+}
+
+.blob-eye-r {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 150ms var(--ease-out);
+}
+
+.blob-eye-r.is-squinting {
+  transform: scaleY(0.62);
+}
+
+.mood-mischievous .blob-glance {
+  animation: blob-glance 5s var(--ease-in-out) infinite;
+}
+
+.blob-eyes {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 70ms ease-in;
+}
+
+.blob-eyes.is-blinking {
+  transform: scaleY(0.1);
+}
+
+/* Glossy button eyes with a thin light rim */
+.blob-eye {
+  fill: #1d1b2c;
+  stroke: rgba(255, 255, 255, 0.55);
+  stroke-width: 1.4;
+}
+
+.blob-catchlight {
+  fill: #fff;
+}
+
+.blob-catchlight--small {
+  opacity: 0.8;
+}
+
+.blob-ear-inner {
+  fill: var(--pink);
+  opacity: 0.55;
+}
+
+.blob-limb-shadow {
+  fill: var(--ink);
+  opacity: 0.18;
+}
+
+/* Slightly lighter fluff around the nose */
+.blob-muzzle {
+  fill: #fff;
+  opacity: 0.07;
+}
+
+.blob-cheek {
+  fill: var(--pink);
+  opacity: 0.4;
+}
+
+.blob-nose {
+  fill: #3a2c3a;
+}
+
+@keyframes blob-breathe {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(var(--breath-lift, -3px)) scale(var(--breath-scale, 1.025));
+  }
+}
+
+@keyframes blob-glance {
+  0%,
+  55%,
+  100% {
+    transform: translateX(0);
+  }
+  65%,
+  85% {
+    transform: translateX(4px);
+  }
+}
+
+@keyframes blob-shadow {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.12;
+  }
+  50% {
+    transform: scale(0.94);
+    opacity: 0.09;
+  }
+}
+
+@keyframes blob-squash {
+  0% {
+    transform: scale(1, 1);
+  }
+  22% {
+    transform: scale(1.18, 0.82);
+  }
+  50% {
+    transform: scale(0.9, 1.12);
+  }
+  75% {
+    transform: scale(1.04, 0.97);
+  }
+  100% {
+    transform: scale(1, 1);
+  }
+}
+
+/* Reduced motion: no looping idle, shorter/softer poke feedback */
+@media (prefers-reduced-motion: reduce) {
+  .blob-breathe,
+  .blob-shadow,
+  .mood-mischievous .blob-glance {
+    animation: none;
+  }
+  .blob-face {
+    transition: none;
+  }
+  .blob-squash.is-squishing {
+    animation-duration: 220ms;
+  }
+}

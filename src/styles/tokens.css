@@ -1,0 +1,52 @@
+/*
+  Blob Lab design tokens — the single place to art-direct the app.
+  Values come from design.md §3 and §5. Change a value here and it updates everywhere.
+*/
+:root {
+  /* Color */
+  --ink: #25243b;
+  --muted: #6b6984; /* darkened from #77758F so small text passes WCAG AA on --canvas */
+  --canvas: #f8f6ff;
+  --surface: #ffffff;
+  --primary: #7157f5;
+  --primary-hover: #5d43e5;
+  --pink: #ff82b2;
+  --mint: #65dcc2;
+  --sun: #ffd36b;
+  --sky: #78bfff;
+  --border: #e7e2f3;
+  --danger: #dc4c6c;
+
+  /* Typography */
+  --font-display: 'Fredoka', 'Arial Rounded MT Bold', system-ui, sans-serif;
+  --font-body: 'DM Sans', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --text-title: clamp(2.25rem, 1.4rem + 3.6vw, 4rem); /* ~36px mobile → 64px desktop */
+  --text-body: 1rem;
+  --text-small: 0.875rem;
+
+  /* Spacing (8px rhythm) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --content-max: 1120px;
+
+  /* Shape */
+  --radius-panel: 24px;
+  --radius-control: 16px;
+  --radius-pill: 999px;
+  --shadow-soft: 0 10px 30px rgba(37, 36, 59, 0.08);
+  --shadow-cta: 0 10px 24px rgba(113, 87, 245, 0.32);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.45, 0, 0.55, 1);
+  --dur-breath: 3s;
+  --dur-squash: 500ms;
+  --dur-screen: 350ms;
+  --dur-fast: 150ms;
+}

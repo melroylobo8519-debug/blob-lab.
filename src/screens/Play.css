@@ -1,0 +1,276 @@
+.play {
+  height: 100dvh;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  overscroll-behavior: none;
+}
+
+/* ---------- HUD ---------- */
+.play-hud {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.play-hud-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.play-title {
+  font: 600 1.125rem/1 var(--font-display);
+  color: var(--ink);
+}
+
+.hud-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 84px;
+  justify-content: center;
+  padding: var(--space-2) var(--space-4);
+  background: var(--surface);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-soft);
+  font: 600 1.375rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.hud-star {
+  width: 20px;
+  height: 20px;
+  fill: var(--sun);
+  filter: drop-shadow(0 0 4px rgba(255, 190, 60, 0.6));
+}
+
+.hud-value--pop {
+  display: inline-block;
+  animation: hud-pop 300ms var(--ease-out);
+}
+
+.hud-timer.is-urgent {
+  color: var(--danger);
+  animation: hud-pulse 1s var(--ease-in-out) infinite;
+}
+
+.play-progress {
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--border);
+  overflow: hidden;
+}
+
+.play-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--pink));
+  transform-origin: left center;
+}
+
+/* ---------- Playfield ---------- */
+.play-field {
+  position: relative;
+  flex: 1;
+  min-height: 320px;
+  overflow: hidden;
+  border-radius: var(--radius-panel);
+  background:
+    radial-gradient(60% 50% at 50% 0%, rgba(255, 211, 107, 0.18), transparent 70%),
+    linear-gradient(180deg, #ece6ff 0%, #f7f3ff 60%, #fff 100%);
+  box-shadow: inset 0 0 0 1px var(--border), var(--shadow-soft);
+  touch-action: none; /* no page scrolling or zooming while playing */
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: crosshair;
+}
+
+/* soft ground the blob sits on */
+.play-field::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 14px;
+  background: linear-gradient(180deg, transparent, rgba(113, 87, 245, 0.08));
+  pointer-events: none;
+}
+
+/* Stars: positioned by their centre (the -16px offset = STAR_RADIUS) */
+.play-star {
+  position: absolute;
+  left: -16px;
+  top: -16px;
+  width: 32px;
+  height: 32px;
+  will-change: transform;
+  background: radial-gradient(circle, rgba(255, 211, 107, 0.55) 0%, rgba(255, 211, 107, 0) 70%);
+  border-radius: 50%;
+}
+
+.play-star-shape {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 4px;
+  fill: var(--sun);
+  animation: star-spin 2.4s linear infinite;
+}
+
+.play-blob {
+  position: absolute;
+  left: 0;
+  bottom: 2px;
+  transform-origin: 50% 100%;
+  will-change: transform;
+  pointer-events: none;
+}
+
+/* Catch burst: six dots fly out, "+1" floats up */
+.play-burst {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+}
+
+.play-burst-dot {
+  position: absolute;
+  left: -4px;
+  top: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--sun);
+  animation: burst-dot 450ms var(--ease-out) forwards;
+}
+
+.play-burst-dot:nth-child(even) {
+  background: var(--pink);
+}
+
+.play-burst-plus {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font: 600 1.125rem/1 var(--font-display);
+  color: var(--primary);
+  white-space: nowrap;
+  animation: burst-plus 500ms var(--ease-out) forwards;
+}
+
+.play-hint {
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-5);
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-soft);
+  text-align: center;
+  pointer-events: none;
+  transition: opacity 300ms var(--ease-out);
+}
+
+.play-hint strong {
+  font: 600 1.25rem/1.2 var(--font-display);
+}
+
+.play-hint span {
+  font-size: var(--text-small);
+  color: var(--muted);
+}
+
+.play-hint.is-hidden {
+  opacity: 0;
+}
+
+.play-timeup {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font: 600 clamp(3rem, 2rem + 6vw, 5.5rem) / 1 var(--font-display);
+  color: var(--primary);
+  background: rgba(248, 246, 255, 0.55);
+  animation: timeup-in 450ms var(--ease-out) both;
+}
+
+/* ---------- Keyframes ---------- */
+@keyframes hud-pop {
+  40% {
+    transform: scale(1.35);
+  }
+}
+
+@keyframes hud-pulse {
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+@keyframes star-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes burst-dot {
+  from {
+    transform: rotate(var(--angle)) translateY(0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: rotate(var(--angle)) translateY(-30px) scale(0.2);
+    opacity: 0;
+  }
+}
+
+@keyframes burst-plus {
+  from {
+    transform: translate(-50%, -10px) scale(0.8);
+    opacity: 1;
+  }
+  to {
+    transform: translate(-50%, -44px) scale(1.1);
+    opacity: 0;
+  }
+}
+
+@keyframes timeup-in {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+@media (max-width: 480px) {
+  .play {
+    padding: var(--space-3);
+  }
+  .play-title {
+    display: none;
+  }
+}
+
+/* Reduced motion: no spinning or pulsing; catch feedback stays, just calmer */
+@media (prefers-reduced-motion: reduce) {
+  .play-star-shape,
+  .hud-timer.is-urgent,
+  .hud-value--pop {
+    animation: none;
+  }
+  .play-burst-dot {
+    animation-duration: 250ms;
+  }
+}

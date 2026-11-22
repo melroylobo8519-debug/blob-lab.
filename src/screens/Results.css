@@ -1,0 +1,101 @@
+.results {
+  min-height: 100dvh;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--space-3);
+}
+
+.results-kicker {
+  font: 600 0.875rem/1 var(--font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.results-blob {
+  width: min(220px, 60vw);
+  margin: var(--space-2) 0;
+}
+
+.results-name {
+  font: 600 1.25rem/1.2 var(--font-display);
+  margin-top: calc(var(--space-2) * -1);
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.results-step:nth-child(6) {
+  animation-delay: 250ms;
+}
+
+.results-score {
+  font-size: clamp(1.75rem, 1.2rem + 2.4vw, 2.5rem);
+}
+
+.results-score-num {
+  color: var(--primary);
+}
+
+.results-message {
+  color: var(--muted);
+  font-size: 1.0625rem;
+  max-width: 32ch;
+}
+
+.results-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.results-actions .btn {
+  min-width: 160px;
+}
+
+/* Staggered, celebratory entrance (~600ms total) that never blocks the buttons */
+.results-step {
+  animation: results-rise 450ms var(--ease-out) both;
+}
+.results-step:nth-child(2) {
+  animation-delay: 60ms;
+}
+.results-step:nth-child(3) {
+  animation-delay: 120ms;
+}
+.results-step:nth-child(4) {
+  animation-delay: 170ms;
+}
+.results-step:nth-child(5) {
+  animation-delay: 210ms;
+}
+
+@keyframes results-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+@media (max-width: 480px) {
+  .results-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+  .results-actions .btn {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .results-step {
+    animation: none;
+  }
+}

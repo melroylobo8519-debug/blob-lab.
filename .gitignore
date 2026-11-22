@@ -1,0 +1,9 @@
+node_modules
+dist
+.env
+.env.*
+.vercel
+
+# Private planning docs (kept local)
+CLAUDE.md
+design.md
