@@ -14,7 +14,13 @@ const SPAWN_GAP_END = 0.42 // …and at the end (gentle ramp)
 const FALL_SPEED_START = 0.3 // fraction of playfield height per second
 const FALL_SPEED_END = 0.52
 const NO_SPAWN_FINAL_SECONDS = 0.8 // don't drop stars nobody can catch in time
-const BURST_SECONDS = 0.5
+const BURST_SECONDS = 0.6
+const GOLDEN_CHANCE = 0.12 // ~1 in 8 stars (after the first few seconds) is golden…
+const GOLDEN_VALUE = 3 // …and worth 3 points
+const CALLOUT_SECONDS = 0.9
+// Streak praise: shown when the catch streak reaches these numbers.
+const CALLOUTS = { 3: 'Nice!', 5: 'Great!', 8: 'Wow!', 12: 'Amazing!' }
+const calloutFor = (combo) => CALLOUTS[combo] ?? (combo >= 16 && combo % 4 === 0 ? 'Unstoppable!' : null)
 
 const lerp = (a, b, t) => a + (b - a) * t
 const clamp = (v, min, max) => Math.min(max, Math.max(min, v))
@@ -36,9 +42,13 @@ export function createGame({ width, height, random = Math.random, speedMultiplie
     blobVX: 0,
     stars: [],
     bursts: [],
+    callouts: [],
     nextSpawnAt: 0.6,
     nextId: 1,
     catchCount: 0,
+    combo: 0, // catches in a row without missing one
+    bestCombo: 0,
+    goldenCaught: 0,
     ended: false,
   }
 }
@@ -66,8 +76,10 @@ export function maxSpeedOf(game) {
 
 function spawnStar(game, progress) {
   const margin = STAR_RADIUS + 8
+  const golden = game.time > 3 && game.random() < GOLDEN_CHANCE
   game.stars.push({
     id: game.nextId++,
+    golden,
     x: margin + game.random() * (game.width - margin * 2),
     y: -STAR_RADIUS,
     speed: game.height * lerp(FALL_SPEED_START, FALL_SPEED_END, progress) * lerp(0.9, 1.1, game.random()),
@@ -115,17 +127,27 @@ export function updateGame(game, dt, input) {
     star.y += star.speed * dt
     const inHeight = star.y + STAR_RADIUS >= blobTop && star.y - STAR_RADIUS <= blobFeet
     if (inHeight && Math.abs(star.x - game.blobX) <= reach) {
-      game.score += 1
+      const value = star.golden ? GOLDEN_VALUE : 1
+      game.score += value
       game.catchCount += 1
-      game.bursts.push({ id: star.id, x: star.x, y: star.y, age: 0 })
+      game.combo += 1
+      game.bestCombo = Math.max(game.bestCombo, game.combo)
+      if (star.golden) game.goldenCaught += 1
+      game.bursts.push({ id: star.id, x: star.x, y: star.y, age: 0, value, golden: star.golden })
+      const text = calloutFor(game.combo)
+      if (text) game.callouts.push({ id: star.id, text, age: 0 })
     } else if (star.y - STAR_RADIUS <= game.height) {
-      remaining.push(star) // missed stars simply fall away — no penalty
+      remaining.push(star)
+    } else {
+      game.combo = 0 // a missed star only ends the streak — no point penalty
     }
   }
   game.stars = remaining
 
   for (const b of game.bursts) b.age += dt
   game.bursts = game.bursts.filter((b) => b.age < BURST_SECONDS)
+  for (const c of game.callouts) c.age += dt
+  game.callouts = game.callouts.filter((c) => c.age < CALLOUT_SECONDS)
 
   if (game.time >= ROUND_SECONDS) game.ended = true
   return game

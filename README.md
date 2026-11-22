@@ -8,8 +8,9 @@
 
 - **Meet your blob:** pick a color, then use sliders for shape, fluffiness, energy, and glow. Choose a mood (Happy, Sleepy, Mischievous) and a name, or press **Surprise me**.
 - **Extras:** cat, bunny, or bear ears, a party hat, crown, or beanie, and a star wand, toy sword, or shield to hold.
-- **Catch the Glow:** a 30-second round. Catch falling stars, and the pace ramps up gently. Missing a star costs nothing.
-- **Results:** your blob, its name, your score, then **Play again** or **Customize**.
+- **Catch the Glow:** a 30-second round under a sky that slowly turns to dusk. Catch falling stars, and the pace ramps up gently. **Golden stars** are worth +3, catches in a row build a **streak** ("Nice!", "Wow!"), and missing a star only ends the streak.
+- **A living creature:** it breathes, blinks, glances around, follows your pointer, and shows happy ^ ^ eyes when poked. In the game, it watches the stars, leans into its moves, and its ears and hat bounce along.
+- **Results:** the score counts up, you get a 1–3 star rating, confetti, and a celebration dance. Your best score is kept in your own browser only. Then **Play again** or **Customize**.
 - **Music:** an original tune and catch chimes, generated in the browser. It's off by default, and the button in the corner turns it on.
 - Works on desktop and phones, and respects the "reduce motion" accessibility setting.
 

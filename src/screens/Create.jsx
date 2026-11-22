@@ -44,8 +44,26 @@ function SliderField({ id, label, low, high, value, onChange }) {
   )
 }
 
+const TABS = [
+  { id: 'look', label: 'Look' },
+  { id: 'personality', label: 'Personality' },
+  { id: 'extras', label: 'Extras' },
+]
+
 export default function Create({ look, fallbackName, onChange, onBack, onPlay }) {
   const [bounce, setBounce] = useState(0)
+  const [tab, setTab] = useState('look')
+
+  // Arrow keys move between tabs (standard keyboard pattern for tab lists).
+  const onTabKey = (event) => {
+    const i = TABS.findIndex((t) => t.id === tab)
+    const step = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0
+    if (!step) return
+    event.preventDefault()
+    const next = TABS[(i + step + TABS.length) % TABS.length]
+    setTab(next.id)
+    document.getElementById(`tab-${next.id}`)?.focus()
+  }
   const update = (changes) => onChange({ ...look, ...changes })
   const react = () => setBounce((b) => b + 1)
 
@@ -72,79 +90,157 @@ export default function Create({ look, fallbackName, onChange, onBack, onPlay })
         </section>
 
         <section className="create-panel" aria-label="Customize your blob">
-          <div className="field">
-            <span className="field-label" id="color-label">
-              Color
-            </span>
-            <div className="swatches" role="radiogroup" aria-labelledby="color-label">
-              {Object.entries(BLOB_COLORS).map(([id, c]) => (
-                <button
-                  key={id}
-                  type="button"
-                  role="radio"
-                  aria-checked={look.color === id}
-                  aria-label={c.name}
-                  title={c.name}
-                  className="swatch"
-                  style={{ '--swatch': c.body, '--swatch-light': c.light }}
-                  onClick={() => {
-                    update({ color: id })
+          <div className="tabs" role="tablist" aria-label="Customize" onKeyDown={onTabKey}>
+            {TABS.map((t) => (
+              <button
+                key={t.id}
+                id={`tab-${t.id}`}
+                type="button"
+                role="tab"
+                aria-selected={tab === t.id}
+                aria-controls={`panel-${t.id}`}
+                tabIndex={tab === t.id ? 0 : -1}
+                className="tab"
+                onClick={() => setTab(t.id)}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          <div key={tab} id={`panel-${tab}`} className="tab-panel" role="tabpanel" aria-labelledby={`tab-${tab}`}>
+            {tab === 'look' && (
+              <>
+                <div className="field">
+                  <span className="field-label" id="color-label">
+                    Color
+                  </span>
+                  <div className="swatches" role="radiogroup" aria-labelledby="color-label">
+                    {Object.entries(BLOB_COLORS).map(([id, c]) => (
+                      <button
+                        key={id}
+                        type="button"
+                        role="radio"
+                        aria-checked={look.color === id}
+                        aria-label={c.name}
+                        title={c.name}
+                        className="swatch"
+                        style={{ '--swatch': c.body, '--swatch-light': c.light }}
+                        onClick={() => {
+                          update({ color: id })
+                          react()
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <SliderField
+                  id="shape"
+                  label="Shape"
+                  low="Round"
+                  high="Stretchy"
+                  value={look.shape}
+                  onChange={(shape) => update({ shape })}
+                />
+                <SliderField
+                  id="fluff"
+                  label="Fluffiness"
+                  low="Sleek"
+                  high="Extra fluffy"
+                  value={look.fluff}
+                  onChange={(fluff) => update({ fluff })}
+                />
+              </>
+            )}
+
+            {tab === 'personality' && (
+              <>
+                <SliderField
+                  id="energy"
+                  label="Energy"
+                  low="Chill"
+                  high="Zippy"
+                  value={look.energy}
+                  onChange={(energy) => update({ energy })}
+                />
+                <SliderField id="glow" label="Glow" low="Soft" high="Radiant" value={look.glow} onChange={(glow) => update({ glow })} />
+
+                <div className="field">
+                  <span className="field-label" id="mood-label">
+                    Mood
+                  </span>
+                  <div className="segmented" role="radiogroup" aria-labelledby="mood-label">
+                    {MOODS.map((m) => (
+                      <button
+                        key={m.id}
+                        type="button"
+                        role="radio"
+                        aria-checked={look.mood === m.id}
+                        className="segmented-option"
+                        onClick={() => {
+                          update({ mood: m.id })
+                          react()
+                        }}
+                      >
+                        {m.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="field">
+                  <label className="field-label" htmlFor="blob-name">
+                    Name <span className="field-optional">(optional)</span>
+                  </label>
+                  <input
+                    id="blob-name"
+                    className="text-input"
+                    type="text"
+                    maxLength={NAME_MAX}
+                    placeholder={fallbackName}
+                    value={look.name}
+                    autoComplete="off"
+                    onChange={(e) => update({ name: e.target.value.slice(0, NAME_MAX) })}
+                  />
+                </div>
+              </>
+            )}
+
+            {tab === 'extras' && (
+              <>
+                <ChipField
+                  id="ears"
+                  label="Ears"
+                  options={EARS}
+                  value={look.ears}
+                  onPick={(ears) => {
+                    update({ ears })
                     react()
                   }}
                 />
-              ))}
-            </div>
-          </div>
-
-          <SliderField id="shape" label="Shape" low="Round" high="Stretchy" value={look.shape} onChange={(shape) => update({ shape })} />
-          <SliderField id="fluff" label="Fluffiness" low="Sleek" high="Extra fluffy" value={look.fluff} onChange={(fluff) => update({ fluff })} />
-          <SliderField id="energy" label="Energy" low="Chill" high="Zippy" value={look.energy} onChange={(energy) => update({ energy })} />
-          <SliderField id="glow" label="Glow" low="Soft" high="Radiant" value={look.glow} onChange={(glow) => update({ glow })} />
-
-          <div className="field">
-            <span className="field-label" id="mood-label">
-              Mood
-            </span>
-            <div className="segmented" role="radiogroup" aria-labelledby="mood-label">
-              {MOODS.map((m) => (
-                <button
-                  key={m.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={look.mood === m.id}
-                  className="segmented-option"
-                  onClick={() => {
-                    update({ mood: m.id })
+                <ChipField
+                  id="hat"
+                  label="Hat"
+                  options={HATS}
+                  value={look.hat}
+                  onPick={(hat) => {
+                    update({ hat })
                     react()
                   }}
-                >
-                  {m.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="panel-divider">
-            <span>Extras</span>
-          </div>
-          <ChipField id="ears" label="Ears" options={EARS} value={look.ears} onPick={(ears) => { update({ ears }); react() }} />
-          <ChipField id="hat" label="Hat" options={HATS} value={look.hat} onPick={(hat) => { update({ hat }); react() }} />
-          <ChipField id="item" label="Holding" options={ITEMS} value={look.item} onPick={(item) => { update({ item }); react() }} />
-
-          <div className="field">
-            <label className="field-label" htmlFor="blob-name">
-              Name <span className="field-optional">(optional)</span>
-            </label>
-            <input
-              id="blob-name"
-              className="text-input"
-              type="text"
-              maxLength={NAME_MAX}
-              placeholder={fallbackName}
-              value={look.name}
-              autoComplete="off"
-              onChange={(e) => update({ name: e.target.value.slice(0, NAME_MAX) })}
-            />
+                />
+                <ChipField
+                  id="item"
+                  label="Holding"
+                  options={ITEMS}
+                  value={look.item}
+                  onPick={(item) => {
+                    update({ item })
+                    react()
+                  }}
+                />
+              </>
+            )}
           </div>
 
           <div className="create-actions">

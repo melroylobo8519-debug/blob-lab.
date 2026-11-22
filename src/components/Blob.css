@@ -131,6 +131,108 @@ button.blob {
   opacity: 0.8;
 }
 
+/* Happy ^ ^ eyes swap in while cheering */
+.blob-happy-eyes {
+  fill: none;
+  stroke: #1d1b2c;
+  stroke-width: 3.4;
+  stroke-linecap: round;
+  opacity: 0;
+}
+
+.blob-eyes,
+.blob-happy-eyes {
+  transition: opacity 80ms linear;
+}
+
+.blob.is-cheering .blob-happy-eyes {
+  opacity: 1;
+}
+
+.blob.is-cheering .blob-eyes,
+.blob.is-cheering .blob-brow {
+  opacity: 0;
+}
+
+/* Follow-through: ears, hat and held item react a beat after the body squashes */
+.blob-ears-wrap,
+.blob-hat-wrap,
+.blob-item-wrap {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+.blob-squash.is-squishing .blob-ears-wrap {
+  animation: ears-flop var(--dur-squash) var(--ease-out);
+}
+
+.blob-squash.is-squishing .blob-hat-wrap {
+  animation: hat-hop var(--dur-squash) var(--ease-out);
+}
+
+.blob-squash.is-squishing .blob-item-wrap {
+  animation: item-wave var(--dur-squash) var(--ease-out);
+}
+
+/* Gentle idle sway for ears, slightly out of step with breathing */
+.blob-ears-wrap {
+  animation: ears-sway calc(var(--breath-dur, 3s) * 1.3) var(--ease-in-out) infinite;
+}
+
+@keyframes ears-sway {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(1.5deg);
+  }
+}
+
+@keyframes ears-flop {
+  0% {
+    transform: scaleY(1);
+  }
+  35% {
+    transform: scaleY(0.84);
+  }
+  65% {
+    transform: scaleY(1.1);
+  }
+  100% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes hat-hop {
+  0%,
+  15% {
+    transform: translateY(0) rotate(0deg);
+  }
+  45% {
+    transform: translateY(-9px) rotate(-5deg);
+  }
+  75% {
+    transform: translateY(1px) rotate(2deg);
+  }
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+}
+
+@keyframes item-wave {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  40% {
+    transform: rotate(-10deg);
+  }
+  70% {
+    transform: rotate(5deg);
+  }
+}
+
 .blob-ear-inner {
   fill: var(--pink);
   opacity: 0.55;
@@ -212,7 +314,11 @@ button.blob {
 @media (prefers-reduced-motion: reduce) {
   .blob-breathe,
   .blob-shadow,
-  .mood-mischievous .blob-glance {
+  .blob-ears-wrap,
+  .mood-mischievous .blob-glance,
+  .blob-squash.is-squishing .blob-ears-wrap,
+  .blob-squash.is-squishing .blob-hat-wrap,
+  .blob-squash.is-squishing .blob-item-wrap {
     animation: none;
   }
   .blob-face {

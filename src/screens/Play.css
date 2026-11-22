@@ -17,6 +17,7 @@
   gap: var(--space-3);
 }
 
+.play-hud-left,
 .play-hud-right {
   display: flex;
   align-items: center;
@@ -32,9 +33,8 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  min-width: 84px;
-  justify-content: center;
-  padding: var(--space-2) var(--space-4);
+  min-height: 48px;
+  padding: var(--space-1) var(--space-4) var(--space-1) var(--space-3);
   background: var(--surface);
   border-radius: var(--radius-pill);
   box-shadow: var(--shadow-soft);
@@ -43,15 +43,69 @@
 }
 
 .hud-star {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   fill: var(--sun);
   filter: drop-shadow(0 0 4px rgba(255, 190, 60, 0.6));
 }
 
-.hud-value--pop {
+/* Score: pops and glows on every catch */
+.hud-score.is-bumped {
+  animation: hud-glow 450ms var(--ease-out);
+}
+
+.hud-score.is-bumped .hud-value {
   display: inline-block;
   animation: hud-pop 300ms var(--ease-out);
+}
+
+.hud-combo {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--primary);
+  color: #fff;
+  font: 600 1rem/1 var(--font-display);
+  box-shadow: var(--shadow-cta);
+  animation: combo-pop 260ms var(--ease-out);
+}
+
+/* Timer: a ring that empties as time runs out */
+.hud-timer {
+  position: relative;
+  padding: var(--space-1);
+  min-width: 48px;
+  justify-content: center;
+}
+
+.hud-ring {
+  width: 40px;
+  height: 40px;
+  transform: rotate(-90deg);
+}
+
+.hud-ring-track {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 4;
+}
+
+.hud-ring-fill {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke 200ms linear;
+}
+
+.hud-timer .hud-value {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 1.0625rem;
 }
 
 .hud-timer.is-urgent {
@@ -59,17 +113,8 @@
   animation: hud-pulse 1s var(--ease-in-out) infinite;
 }
 
-.play-progress {
-  height: 6px;
-  border-radius: var(--radius-pill);
-  background: var(--border);
-  overflow: hidden;
-}
-
-.play-progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--primary), var(--pink));
-  transform-origin: left center;
+.hud-timer.is-urgent .hud-ring-fill {
+  stroke: var(--danger);
 }
 
 /* ---------- Playfield ---------- */
@@ -81,7 +126,7 @@
   border-radius: var(--radius-panel);
   background:
     radial-gradient(60% 50% at 50% 0%, rgba(255, 211, 107, 0.18), transparent 70%),
-    linear-gradient(180deg, #ece6ff 0%, #f7f3ff 60%, #fff 100%);
+    linear-gradient(180deg, #e6deff 0%, #f3eeff 55%, #fbf9ff 100%);
   box-shadow: inset 0 0 0 1px var(--border), var(--shadow-soft);
   touch-action: none; /* no page scrolling or zooming while playing */
   user-select: none;
@@ -89,19 +134,93 @@
   cursor: crosshair;
 }
 
-/* soft ground the blob sits on */
-.play-field::after {
-  content: '';
+/* ---------- Environment ---------- */
+/* Dusk: fades in over the round, so the sky warms as time runs out */
+.play-dusk {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 14px;
-  background: linear-gradient(180deg, transparent, rgba(113, 87, 245, 0.08));
+  inset: 0;
+  background: linear-gradient(180deg, #b9a6ff 0%, #e7c4f2 45%, #ffd9e4 75%, #ffe9d9 100%);
   pointer-events: none;
 }
 
-/* Stars: positioned by their centre (the -16px offset = STAR_RADIUS) */
+.play-twinkles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.play-twinkles span {
+  position: absolute;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 6px 1px rgba(255, 255, 255, 0.9);
+  animation: twinkle 3s var(--ease-in-out) infinite;
+}
+
+.play-cloud {
+  position: absolute;
+  left: 0;
+  width: 110px;
+  height: 30px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.65);
+  pointer-events: none;
+  animation: cloud-drift 70s linear infinite;
+}
+
+.play-cloud::before,
+.play-cloud::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  background: inherit;
+}
+
+.play-cloud::before {
+  width: 46px;
+  height: 46px;
+  left: 18px;
+  top: -24px;
+}
+
+.play-cloud::after {
+  width: 34px;
+  height: 34px;
+  left: 54px;
+  top: -16px;
+}
+
+.play-cloud--a {
+  top: 16%;
+}
+
+.play-cloud--b {
+  top: 34%;
+  transform: scale(0.7);
+  opacity: 0.8;
+  animation-duration: 95s;
+  animation-delay: -50s;
+}
+
+.play-hills {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: min(26%, 130px);
+  pointer-events: none;
+}
+
+.play-hill-back {
+  fill: rgba(162, 139, 255, 0.22);
+}
+
+.play-hill-front {
+  fill: rgba(113, 87, 245, 0.14);
+}
+
+/* ---------- Stars ---------- */
+/* Positioned by their centre (the -16px offset = STAR_RADIUS) */
 .play-star {
   position: absolute;
   left: -16px;
@@ -109,7 +228,7 @@
   width: 32px;
   height: 32px;
   will-change: transform;
-  background: radial-gradient(circle, rgba(255, 211, 107, 0.55) 0%, rgba(255, 211, 107, 0) 70%);
+  background: radial-gradient(circle, rgba(255, 211, 107, 0.6) 0%, rgba(255, 211, 107, 0) 70%);
   border-radius: 50%;
 }
 
@@ -122,6 +241,23 @@
   animation: star-spin 2.4s linear infinite;
 }
 
+/* Golden: bigger, warmer, shimmering — worth +3 */
+.play-star--golden {
+  background: radial-gradient(circle, rgba(255, 170, 40, 0.75) 0%, rgba(255, 190, 60, 0) 72%);
+}
+
+.play-star--golden .play-star-shape {
+  padding: 0;
+  fill: #ffb627;
+  stroke: #fff3c4;
+  stroke-width: 1.2;
+  transform-origin: center;
+  animation:
+    star-spin 1.6s linear infinite,
+    golden-shimmer 0.8s var(--ease-in-out) infinite alternate;
+  filter: drop-shadow(0 0 6px rgba(255, 170, 40, 0.9));
+}
+
 .play-blob {
   position: absolute;
   left: 0;
@@ -131,12 +267,23 @@
   pointer-events: none;
 }
 
-/* Catch burst: six dots fly out, "+1" floats up */
+/* ---------- Catch feedback ---------- */
 .play-burst {
   position: absolute;
   left: 0;
   top: 0;
   pointer-events: none;
+}
+
+.play-burst-ring {
+  position: absolute;
+  left: -20px;
+  top: -20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 3px solid var(--sun);
+  animation: burst-ring 420ms var(--ease-out) forwards;
 }
 
 .play-burst-dot {
@@ -158,10 +305,58 @@
   position: absolute;
   left: 0;
   top: 0;
+  font: 600 1.25rem/1 var(--font-display);
+  color: var(--primary);
+  white-space: nowrap;
+  text-shadow: 0 1px 0 #fff;
+  animation: burst-plus 550ms var(--ease-out) forwards;
+}
+
+.play-burst--golden .play-burst-ring {
+  border-color: #ffb627;
+  animation-duration: 550ms;
+}
+
+.play-burst--golden .play-burst-dot {
+  animation-name: burst-dot-big;
+}
+
+.play-burst--golden .play-burst-plus {
+  font-size: 1.75rem;
+  color: #e8930c;
+}
+
+/* Streak praise ("Nice!", "Wow!") rising above the blob */
+.play-callout {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+}
+
+.play-callout span {
+  display: block;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
   font: 600 1.125rem/1 var(--font-display);
   color: var(--primary);
   white-space: nowrap;
-  animation: burst-plus 500ms var(--ease-out) forwards;
+  animation: callout-rise 900ms var(--ease-out) forwards;
+}
+
+/* Final seconds: big soft numbers that never block the stars */
+.play-countdown {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font: 600 clamp(6rem, 4rem + 10vw, 10rem) / 1 var(--font-display);
+  color: var(--primary);
+  opacity: 0;
+  pointer-events: none;
+  animation: countdown 1s var(--ease-out);
 }
 
 .play-hint {
@@ -174,7 +369,7 @@
   align-items: center;
   gap: var(--space-1);
   padding: var(--space-4) var(--space-5);
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.94);
   border-radius: var(--radius-panel);
   box-shadow: var(--shadow-soft);
   text-align: center;
@@ -189,6 +384,21 @@
 .play-hint span {
   font-size: var(--text-small);
   color: var(--muted);
+}
+
+.play-hint .play-hint-gold {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-top: var(--space-1);
+  color: #a35f00;
+  font-weight: 700;
+}
+
+.play-hint-star {
+  width: 16px;
+  height: 16px;
+  fill: #ffb627;
 }
 
 .play-hint.is-hidden {
@@ -213,6 +423,23 @@
   }
 }
 
+@keyframes hud-glow {
+  30% {
+    box-shadow:
+      0 0 0 4px rgba(255, 211, 107, 0.55),
+      0 0 22px rgba(255, 190, 60, 0.6);
+  }
+}
+
+@keyframes combo-pop {
+  from {
+    transform: scale(0.6);
+  }
+  60% {
+    transform: scale(1.15);
+  }
+}
+
 @keyframes hud-pulse {
   50% {
     transform: scale(1.06);
@@ -225,13 +452,62 @@
   }
 }
 
+@keyframes golden-shimmer {
+  to {
+    filter: drop-shadow(0 0 12px rgba(255, 200, 80, 1));
+  }
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.7);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes cloud-drift {
+  from {
+    left: -140px;
+  }
+  to {
+    left: 100%;
+  }
+}
+
+@keyframes burst-ring {
+  from {
+    transform: scale(0.3);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
 @keyframes burst-dot {
   from {
     transform: rotate(var(--angle)) translateY(0) scale(1);
     opacity: 1;
   }
   to {
-    transform: rotate(var(--angle)) translateY(-30px) scale(0.2);
+    transform: rotate(var(--angle)) translateY(-32px) scale(0.2);
+    opacity: 0;
+  }
+}
+
+@keyframes burst-dot-big {
+  from {
+    transform: rotate(var(--angle)) translateY(0) scale(1.3);
+    opacity: 1;
+  }
+  to {
+    transform: rotate(var(--angle)) translateY(-48px) scale(0.2);
     opacity: 0;
   }
 }
@@ -242,7 +518,37 @@
     opacity: 1;
   }
   to {
-    transform: translate(-50%, -44px) scale(1.1);
+    transform: translate(-50%, -48px) scale(1.15);
+    opacity: 0;
+  }
+}
+
+@keyframes callout-rise {
+  0% {
+    transform: translate(-50%, 10px) scale(0.6);
+    opacity: 0;
+  }
+  20% {
+    transform: translate(-50%, 0) scale(1.08);
+    opacity: 1;
+  }
+  70% {
+    transform: translate(-50%, -14px) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -30px) scale(0.95);
+    opacity: 0;
+  }
+}
+
+@keyframes countdown {
+  from {
+    transform: scale(1.4);
+    opacity: 0.32;
+  }
+  to {
+    transform: scale(0.9);
     opacity: 0;
   }
 }
@@ -263,14 +569,24 @@
   }
 }
 
-/* Reduced motion: no spinning or pulsing; catch feedback stays, just calmer */
+/* Reduced motion: no drifting/twinkling/spinning; catch feedback stays, just calmer */
 @media (prefers-reduced-motion: reduce) {
   .play-star-shape,
+  .play-star--golden .play-star-shape,
+  .play-twinkles span,
+  .play-cloud,
   .hud-timer.is-urgent,
-  .hud-value--pop {
+  .hud-score.is-bumped,
+  .hud-score.is-bumped .hud-value,
+  .hud-combo {
     animation: none;
   }
-  .play-burst-dot {
+  .play-burst-dot,
+  .play-burst-ring {
     animation-duration: 250ms;
+  }
+  .play-countdown {
+    animation: none;
+    opacity: 0.18;
   }
 }

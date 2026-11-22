@@ -6,6 +6,7 @@ import Results from './screens/Results.jsx'
 import SoundToggle from './components/SoundToggle.jsx'
 import { DEFAULT_LOOK, randomName } from './utils/blobLook.js'
 import { setSoundEnabled } from './utils/sound.js'
+import { recordScore } from './utils/bestScore.js'
 
 // App decides which screen is showing: welcome → create → play → results → (play | create),
 // and remembers the blob's look (and the music setting) across screens.
@@ -13,7 +14,7 @@ export default function App() {
   const [screen, setScreen] = useState('welcome')
   const [look, setLook] = useState(DEFAULT_LOOK)
   const [fallbackName] = useState(randomName) // used when the name field is left blank
-  const [lastScore, setLastScore] = useState(0)
+  const [lastResult, setLastResult] = useState(null)
   const [round, setRound] = useState(0)
   const [soundOn, setSoundOn] = useState(false) // muted by default (design.md)
 
@@ -30,8 +31,9 @@ export default function App() {
     setScreen('play')
   }
 
-  const finishRound = (score) => {
-    setLastScore(score)
+  // stats = { score, bestCombo, goldenCaught } from the game
+  const finishRound = (stats) => {
+    setLastResult({ ...stats, ...recordScore(stats.score) })
     setScreen('results')
   }
 
@@ -42,8 +44,8 @@ export default function App() {
   let content
   if (screen === 'create') {
     content = <Create look={look} fallbackName={fallbackName} onChange={setLook} onBack={() => setScreen('welcome')} onPlay={startRound} />
-  } else if (screen === 'results') {
-    content = <Results look={look} name={name} score={lastScore} onPlayAgain={startRound} onCustomize={() => setScreen('create')} />
+  } else if (screen === 'results' && lastResult) {
+    content = <Results look={look} name={name} result={lastResult} onPlayAgain={startRound} onCustomize={() => setScreen('create')} />
   } else {
     content = <Welcome onStart={() => setScreen('create')} />
   }

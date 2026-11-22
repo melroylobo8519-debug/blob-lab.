@@ -25,13 +25,19 @@ export default function Blob({
   label = 'Your blob',
   interactive = true,
   bounce = 0,
+  gaze = null, // [x, y] from -1 to 1: where the eyes look (game). null = follow the pointer.
 }) {
   const palette = BLOB_COLORS[color] ?? BLOB_COLORS.lavender
   const uid = useId().replace(/[^a-zA-Z0-9_-]/g, '')
   const [blinking, setBlinking] = useState(false)
+  const rootRef = useRef(null)
   const svgRef = useRef(null)
   const faceRef = useRef(null)
   const squashRef = useRef(null)
+  const cheerTimer = useRef(0)
+  const gazeRef = useRef(gaze)
+  const gazeX = gaze ? gaze[0] : null
+  const gazeY = gaze ? gaze[1] : null
 
   // Shape: stretch the body from the feet; the face moves with the head but never distorts.
   const scaleX = mix(1.12, 0.86, shape)
@@ -78,39 +84,67 @@ export default function Blob({
     }
   }, [mood])
 
-  // Face follows the pointer, batched to one update per frame, applied without re-rendering.
+  const lookAt = (x, y) => {
+    if (faceRef.current) faceRef.current.style.transform = `translate(${clamp(x * 7, 7)}px, ${clamp(y * 5, 5)}px)`
+  }
+
+  // In the game, the eyes follow the star the blob is chasing.
+  useEffect(() => {
+    gazeRef.current = gazeX == null ? null : [gazeX, gazeY]
+    if (gazeX != null) lookAt(gazeX, gazeY)
+  }, [gazeX, gazeY])
+
+  // Elsewhere, the face follows the pointer (one update per frame, no re-render).
+  // If the pointer rests for a while, the blob glances around on its own.
   useEffect(() => {
     let frame = 0
     let lastEvent = null
+    let lastMoveAt = performance.now()
+    let glanceBack = 0
     const onMove = (event) => {
       lastEvent = event
-      if (frame) return
+      lastMoveAt = performance.now()
+      if (frame || gazeRef.current) return
       frame = requestAnimationFrame(() => {
         frame = 0
         const svg = svgRef.current
-        const face = faceRef.current
-        if (!svg || !face || !lastEvent) return
+        if (!svg || !lastEvent) return
         const rect = svg.getBoundingClientRect()
         const dx = (lastEvent.clientX - (rect.left + rect.width / 2)) / rect.width
         const dy = (lastEvent.clientY - (rect.top + rect.height / 2)) / rect.height
-        face.style.transform = `translate(${clamp(dx * 12, 7)}px, ${clamp(dy * 9, 5)}px)`
+        lookAt(dx * 1.7, dy * 1.8)
       })
     }
+    const idle = setInterval(() => {
+      if (gazeRef.current || performance.now() - lastMoveAt < 2500) return
+      if (Math.random() < 0.55) return // irregular, not on a beat
+      lookAt(Math.random() * 2 - 1, Math.random() * 1.4 - 0.9)
+      clearTimeout(glanceBack)
+      glanceBack = setTimeout(() => !gazeRef.current && lookAt(0, 0), 900)
+    }, 1600)
     window.addEventListener('pointermove', onMove)
     return () => {
       window.removeEventListener('pointermove', onMove)
       cancelAnimationFrame(frame)
+      clearInterval(idle)
+      clearTimeout(glanceBack)
     }
   }, [])
 
-  // Restart the squash animation on every poke, even mid-bounce.
+  // Restart the squash animation on every poke, even mid-bounce, and flash happy ^ ^ eyes.
   const poke = () => {
     const el = squashRef.current
-    if (!el) return
+    const root = rootRef.current
+    if (!el || !root) return
     el.classList.remove('is-squishing')
     void el.getBoundingClientRect() // forces the browser to notice the class was removed
     el.classList.add('is-squishing')
+    root.classList.add('is-cheering')
+    clearTimeout(cheerTimer.current)
+    cheerTimer.current = setTimeout(() => root.classList.remove('is-cheering'), 480)
   }
+
+  useEffect(() => () => clearTimeout(cheerTimer.current), [])
 
   useEffect(() => {
     if (bounce > 0) poke()
@@ -137,7 +171,7 @@ export default function Blob({
   )
 
   return (
-    <Root className={`blob mood-${mood}`} style={breathStyle} {...rootProps}>
+    <Root ref={rootRef} className={`blob mood-${mood}`} style={breathStyle} {...rootProps}>
       <svg ref={svgRef} viewBox="0 0 200 200" aria-hidden="true" focusable="false">
         <defs>
           <radialGradient id={`${uid}-body`} cx="38%" cy="30%" r="80%">
@@ -164,7 +198,9 @@ export default function Blob({
 
         <g className="blob-breathe">
           <g ref={squashRef} className="blob-squash" onAnimationEnd={(e) => e.currentTarget.classList.remove('is-squishing')}>
-            <Ears type={ears} at={at} furFilter={furFilter} fill={bodyFill} />
+            <g className="blob-ears-wrap">
+              <Ears type={ears} at={at} furFilter={furFilter} fill={bodyFill} />
+            </g>
             <g className="blob-shape" style={{ transform: `scale(${scaleX}, ${scaleY})` }}>
               <ellipse
                 className="blob-aura"
@@ -208,6 +244,11 @@ export default function Blob({
                       <path className="blob-brow" d="M113 74 Q122 73.5 130 78" />
                     </>
                   )}
+                  {/* Happy ^ ^ eyes, shown briefly when poked or catching a star */}
+                  <g className="blob-happy-eyes">
+                    <path d="M69.5 89 Q78 78 86.5 89" />
+                    <path d="M113.5 89 Q122 78 130.5 89" />
+                  </g>
                 </g>
                 <ellipse className="blob-cheek" cx="64" cy="104" rx="8" ry="4.5" />
                 <ellipse className="blob-cheek" cx="136" cy="104" rx="8" ry="4.5" />
@@ -216,8 +257,12 @@ export default function Blob({
             </g>
 
             {fluff >= 65 && hat === 'none' && <Tuft at={at} furFilter={furFilter} fill={bodyFill} />}
-            <Hat type={hat} at={at} scale={scaleX} />
-            <HeldItem type={item} at={at} scale={scaleX} />
+            <g className="blob-hat-wrap">
+              <Hat type={hat} at={at} scale={scaleX} />
+            </g>
+            <g className="blob-item-wrap">
+              <HeldItem type={item} at={at} scale={scaleX} />
+            </g>
           </g>
         </g>
       </svg>

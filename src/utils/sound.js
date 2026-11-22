@@ -117,13 +117,17 @@ export function setSoundEnabled(on) {
 }
 
 // Bright chime on each catch; the pitch climbs a little with each catch in a row.
-export function playCatch(count) {
+export function playCatch(streak, golden = false) {
   if (!enabled || !ctx) return
   const t = ctx.currentTime
-  const scale = [N.C5, N.D5, N.E5, N.G5, N.A5]
-  const f = scale[count % scale.length]
+  const scale = [N.C5, N.D5, N.E5, N.G5, N.A5, N.C6]
+  const f = scale[Math.min(Math.max(streak - 1, 0), scale.length - 1)]
   tone(f, t, 0.22, { type: 'sine', gain: 0.22 })
   tone(f * 2, t + 0.03, 0.18, { type: 'sine', gain: 0.06 })
+  if (golden) {
+    // golden star: a quick sparkling run on top
+    ;[N.E5, N.G5, N.C6].forEach((g, i) => tone(g * 2, t + 0.06 + i * 0.05, 0.25, { type: 'triangle', gain: 0.08 }))
+  }
 }
 
 // Little "ta-da" when the round ends.
